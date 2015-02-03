@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/linearlayout_list_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    android:orientation="horizontal">
+
+    <FrameLayout
+        android:layout_width="72dp"
+        android:layout_height="match_parent"
+        android:id="@+id/framelayout_image_holder">
+
+        <ImageView
+            android:id="@+id/imageview_folder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_folder_grey600_24dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="16dp"
+            android:contentDescription="@null" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/linearlayout_text_item_holder"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/textview_folder_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:text="panorama_sessions"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:alpha="0.87" />
+
+        <TextView
+            android:id="@+id/textview_folder_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="2dp"
+            android:text="1.37 GiB"
+            android:textColor="@android:color/black"
+            android:textSize="14sp"
+            android:alpha="0.54" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="com.filutkie.cameracleaner.ui.CleanerActivity">
+    <item
+        android:id="@+id/action_browse"
+        android:title="Open with file manager"
+        android:icon="@drawable/ic_folder_outline_white_24dp"
+        app:showAsAction="ifRoom" />
+</menu>

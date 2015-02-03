@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+
+    <string name="app_name">Camera Cleaner</string>
+    <string name="hello_world">Hello Camera!</string>
+
+    <!-- Fragment -->
+    <string name="action_cleaned">Cleaned!</string>
+    <string name="title_activity_cleaner">@string/app_name</string>
+    <string name="subheader_folders">Folders</string>
+
+    <!-- Actions -->
+    <string name="action_folders">Folders</string>
+
+</resources>
