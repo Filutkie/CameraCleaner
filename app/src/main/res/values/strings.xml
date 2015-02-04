@@ -5,11 +5,11 @@
     <string name="hello_world">Hello Camera!</string>
 
     <!-- Fragment -->
-    <string name="action_cleaned">Cleaned!</string>
-    <string name="title_activity_cleaner">@string/app_name</string>
     <string name="subheader_folders">Folders</string>
 
     <!-- Actions -->
-    <string name="action_folders">Folders</string>
+    <string name="action_cleaned">Cleaned!</string>
+    <string name="action_open_filemanager">Open with file manager</string>
+    <string name="action_err_open_filemanager">Can\'t open file manager.</string>
 
 </resources>
