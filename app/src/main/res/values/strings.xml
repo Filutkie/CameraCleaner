@@ -1,15 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
+    <!-- Application -->
     <string name="app_name">Camera Cleaner</string>
     <string name="hello_world">Hello Camera!</string>
 
     <!-- Fragment -->
     <string name="subheader_folders">Folders</string>
+    <string name="subheader_autodelete">Autodelete</string>
+    <string name="subheader_history">History</string>
 
     <!-- Actions -->
     <string name="action_cleaned">Cleaned!</string>
     <string name="action_open_filemanager">Open with file manager</string>
     <string name="action_err_open_filemanager">Can\'t open file manager.</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_title_gyro_not_found">Gyroscope not found</string>
+    <!--TODO come up with the text message-->
+    <string name="dialog_message_gyro_not_found">Camera Cleaner app probably will be useless on this device</string>
+
 
 </resources>
