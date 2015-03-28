@@ -12,13 +12,15 @@
 
     <!-- Actions -->
     <string name="action_cleaned">Cleaned!</string>
+    <string name="action_get_on_google_play">Get it on Google Play</string>
     <string name="action_open_filemanager">Open with file manager</string>
     <string name="action_err_open_filemanager">Can\'t open file manager.</string>
 
     <!-- Dialogs -->
     <string name="dialog_title_gyro_not_found">Gyroscope not found</string>
-    <!--TODO come up with the text message-->
-    <string name="dialog_message_gyro_not_found">Camera Cleaner app probably will be useless on this device</string>
+    <string name="dialog_title_camera_not_installed">Google Camera is not installed</string>
+    <string name="dialog_message_gyro_not_found">Camera Cleaner is likely to be useless on your device since the Google Camera require it for taking panos</string>
+    <string name="dialog_message_camera_not_installed">This app is supposed to be used only with Google Camera</string>
 
 
 </resources>
