@@ -4,6 +4,7 @@
     <!-- Application -->
     <string name="app_name">Camera Cleaner</string>
     <string name="hello_world">Hello Camera!</string>
+    <string name="preferences_name">com.filutkie.cameracleaner_preferences</string>
 
     <!-- Fragment -->
     <string name="subheader_folders">Folders</string>

@@ -1,43 +1,64 @@
 package com.filutkie.cameracleaner.ui;
 
+
 import android.app.Fragment;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.filutkie.cameracleaner.CameraDirsSizeObtainerTask;
 import com.filutkie.cameracleaner.CleanerApp;
-import com.filutkie.cameracleaner.Consts;
-import com.filutkie.cameracleaner.OnTaskCompleted;
 import com.filutkie.cameracleaner.R;
 import com.filutkie.cameracleaner.adapter.FolderArrayAdapter;
 import com.filutkie.cameracleaner.model.Folder;
+import com.filutkie.cameracleaner.receiver.CameraReceiver;
 import com.filutkie.cameracleaner.utils.FileUtils;
+import com.filutkie.cameracleaner.utils.Utils;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
 
-public class CleanerFragment extends Fragment implements OnTaskCompleted {
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class CleanerFragment extends Fragment implements CompoundButton.OnCheckedChangeListener {
 
-    static final String TAG = CleanerFragment.class.getSimpleName();
+    public static final String TAG = CleanerFragment.class.getSimpleName();
+    private static final String PREF_KEY_NOTIFICATION_SHOW = "notification_show";
+    private static final String PREF_KEY_NOTIFICATION_ICON = "notification_icon";
+    private static final String PREF_KEY_FIRST_LAUNCH = "first_launch";
 
-    private ImageButton cleanButton;
-    private TextView cacheSizeTextView;
+    private Toolbar toolbar;
+    private TextView sizeTextView;
     private ListView foldersListView;
-    private CameraDirsSizeObtainerTask task;
-    private ArrayList<Folder> listItemsArray;
+    private Switch autodeleteSwitch;
+    private CheckBox notificationCheckBox;
+    private CheckBox iconCheckBox;
+    private UpdateReceiver updateReceiver;
+    private SharedPreferences sharedPreferences;
+
+    List<Folder> folderList;
+    private long fullBytes = 0;
 
     public CleanerFragment() {
     }
@@ -45,77 +66,140 @@ public class CleanerFragment extends Fragment implements OnTaskCompleted {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_cleaner_new, container, false);
-        Log.d(TAG, "onCreateView start.");
+        View rootView = inflater.inflate(R.layout.fragment_cleaner, container, false);
 
-        Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
-        ((ActionBarActivity) getActivity()).setSupportActionBar(toolbar);
-        setHasOptionsMenu(true);
-
-        initAnalytics();
-
-        cacheSizeTextView = (TextView) rootView
-                .findViewById(R.id.textview_cache_size_new);
+        toolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
+        sizeTextView = (TextView) rootView.findViewById(R.id.textview_size_total);
         foldersListView = (ListView) rootView.findViewById(R.id.listview_folders_new);
+        autodeleteSwitch = (Switch) rootView.findViewById(R.id.switch_autodelete);
+        notificationCheckBox = (CheckBox) rootView.findViewById(R.id.checkbox_notification_show);
+        iconCheckBox = (CheckBox) rootView.findViewById(R.id.checkbox_notification_icon);
+        sharedPreferences = getActivity().getSharedPreferences(
+                getString(R.string.preferences_name), Context.MODE_PRIVATE);
+        updateReceiver = new UpdateReceiver();
 
-        task = new CameraDirsSizeObtainerTask(this);
-		task.execute();
+        autodeleteSwitch.setOnCheckedChangeListener(this);
+        notificationCheckBox.setOnCheckedChangeListener(this);
+        iconCheckBox.setOnCheckedChangeListener(this);
 
-        cleanButton = (ImageButton) rootView.findViewById(R.id.imagebutton_clean);
-        cleanButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Tracker t = ((CleanerApp) getActivity().getApplication()).getTracker(
-                        CleanerApp.TrackerName.APP_TRACKER);
-                t.send(new HitBuilders.EventBuilder()
-                        .setCategory("Cleaner Button")
-                        .setAction("Perform Clean")
-                        .setLabel(cacheSizeTextView.getText().toString())
-                        .build());
-                File panoramaSessions = new File(FileUtils.PATH_CAMERA_PANORAMA_FOLDER);
-                File tempSessions = new File(FileUtils.PATH_CAMERA_TEMP_FOLDER);
+        ((ActionBarActivity) getActivity()).setSupportActionBar(toolbar);
 
-                FileUtils.deleteDir(tempSessions);
-                FileUtils.deleteDir(panoramaSessions);
-
-                cacheSizeTextView.setText("Cleaned!");
+        if (savedInstanceState == null) {
+            int state = getBroadcastReceiverState();
+            Log.d(TAG, "receiver status: " + getBroadcastReceiverStateString(state));
+            if (state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                    || state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT) {
+                autodeleteSwitch.setChecked(true);
             }
-        });
-        Log.d(TAG, "onCreateView end.");
+            if (!Utils.hasGyroscope(getActivity())) {
+                GyroscopeDialogFragment gyroDialogFragment = new GyroscopeDialogFragment();
+                gyroDialogFragment.show(getFragmentManager(), GyroscopeDialogFragment.TAG);
+            }
+            if (!Utils.isGoogleCameraPackageInstalled(getActivity())) {
+                CameraDialogFragment cameraDialogFragment = new CameraDialogFragment();
+                cameraDialogFragment.show(getFragmentManager(), CameraDialogFragment.TAG);
+            }
+            notificationCheckBox.setChecked(sharedPreferences.getBoolean(PREF_KEY_NOTIFICATION_SHOW, true));
+            iconCheckBox.setChecked(sharedPreferences.getBoolean(PREF_KEY_NOTIFICATION_ICON, true));
+        }
+        folderList = FileUtils.getFoldersSize();
+        fullBytes = FileUtils.getFullSize(folderList);
+        
+        foldersListView.setAdapter(new FolderArrayAdapter(getActivity(),
+                R.layout.list_item_folder, folderList));
+        if (fullBytes == 0) {
+            sizeTextView.setText(getString(R.string.action_cleaned));
+        } else {
+            sizeTextView.setText(FileUtils.getHumanReadableByteCount(fullBytes));
+        }
 
         return rootView;
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        getActivity().getMenuInflater().inflate(R.menu.menu_cleaner, menu);
+    public void onResume() {
+        super.onResume();
+        if (sharedPreferences.getBoolean(PREF_KEY_FIRST_LAUNCH, true)) {
+            autodeleteSwitch.setChecked(false);
+            sharedPreferences.edit().putBoolean(PREF_KEY_FIRST_LAUNCH, false).apply();
+        }
+        getActivity().registerReceiver(updateReceiver,
+                IntentFilter.create(Utils.CAMERA_INTENT_FILTER_NAME, "image/*"));
     }
 
     @Override
-    public void onTaskCompleted(HashMap<String, String> result) {
-        Log.d(TAG, "onTaskCompleted started.");
+    public void onPause() {
+        super.onPause();
+        getActivity().unregisterReceiver(updateReceiver);
+    }
 
-        cacheSizeTextView.setText(result.get(Consts.FULL_SIZE));
+    public void setCameraReceiverEnabled(boolean isEnabled) {
+        int componentState = isEnabled ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        int currentState = getBroadcastReceiverState();
+        if (componentState != currentState) {
+            String state = isEnabled ? "registered" : "unregistered";
+            Log.d(TAG, "Camera receiver " + state);
+            PackageManager pm = getActivity().getPackageManager();
+            ComponentName component = new ComponentName(getActivity(), CameraReceiver.class);
+            pm.setComponentEnabledSetting(component, componentState, PackageManager.DONT_KILL_APP);
+        }
+    }
 
-        listItemsArray = new ArrayList<>();
-        Folder folder = new Folder();
-        folder.setName("panorama_sessions");
-        folder.setSize(result.get(Consts.PANORAMA_SIZE));
-        listItemsArray.add(folder);
-        folder = new Folder();
-        folder.setName("temp_sessions");
-        folder.setSize(result.get(Consts.TEMP_SIZE));
-        listItemsArray.add(folder);
-        foldersListView.setAdapter(new FolderArrayAdapter(getActivity(),
-                R.layout.list_item_folder, listItemsArray));
-        Log.d(TAG, "onTaskCompleted ended.");
+    private int getBroadcastReceiverState() {
+        ComponentName component = new ComponentName(getActivity(), CameraReceiver.class);
+        return getActivity().getPackageManager().getComponentEnabledSetting(component);
+    }
+
+    private String getBroadcastReceiverStateString(int status) {
+        switch (status) {
+            case PackageManager.COMPONENT_ENABLED_STATE_ENABLED:
+                return "enabled";
+            case PackageManager.COMPONENT_ENABLED_STATE_DISABLED:
+                return "disabled";
+            case PackageManager.COMPONENT_ENABLED_STATE_DEFAULT:
+                return "enabled (default)";
+            default:
+                return "unknown, " + status;
+        }
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        switch (buttonView.getId()) {
+            case R.id.switch_autodelete:
+                setCameraReceiverEnabled(isChecked);
+                break;
+            case R.id.checkbox_notification_show:
+                sharedPreferences.edit().putBoolean(PREF_KEY_NOTIFICATION_SHOW, isChecked).apply();
+                break;
+            case R.id.checkbox_notification_icon:
+                sharedPreferences.edit().putBoolean(PREF_KEY_NOTIFICATION_ICON, isChecked).apply();
+                break;
+        }
     }
 
     private void initAnalytics() {
-        Tracker t = ((CleanerApp) getActivity().getApplication()).getTracker(
-                CleanerApp.TrackerName.APP_TRACKER);
-        t.setScreenName("CleanerFragment");
+        Tracker t = ((CleanerApp) getActivity().getApplication()).getTracker();
+        t.setScreenName(TAG);
         t.send(new HitBuilders.AppViewBuilder().build());
+    }
+
+    /**
+     * Receiver for updating TextViews and ListViews when app's screen is showing.
+     * TODO update list
+     */
+    public class UpdateReceiver extends BroadcastReceiver {
+        public UpdateReceiver() {
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (FileUtils.isPano(context, intent)) {
+                folderList = FileUtils.getFoldersSize();
+                fullBytes = FileUtils.getFullSize(folderList);
+                sizeTextView.setText(FileUtils.getHumanReadableByteCount(fullBytes));
+            }
+        }
     }
 }
