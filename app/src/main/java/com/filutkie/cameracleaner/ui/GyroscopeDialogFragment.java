@@ -10,6 +10,8 @@ import com.filutkie.cameracleaner.R;
 
 public class GyroscopeDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 
+    public static final String TAG = GyroscopeDialogFragment.class.getSimpleName();
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 

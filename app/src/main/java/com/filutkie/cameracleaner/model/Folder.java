@@ -3,9 +3,18 @@ package com.filutkie.cameracleaner.model;
 public class Folder {
 
 	private String name;
-	private String size;
+	private long size;
 
-	public String getName() {
+    public Folder() {
+    }
+
+    public Folder(String name, long size) {
+
+        this.name = name;
+        this.size = size;
+    }
+
+    public String getName() {
 		return name;
 	}
 
@@ -13,11 +22,11 @@ public class Folder {
 		this.name = title;
 	}
 
-	public String getSize() {
+	public long getSize() {
 		return size;
 	}
 
-	public void setSize(String size) {
+	public void setSize(long size) {
 		this.size = size;
 	}
 

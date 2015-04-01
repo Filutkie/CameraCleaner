@@ -9,14 +9,15 @@ import android.widget.TextView;
 
 import com.filutkie.cameracleaner.R;
 import com.filutkie.cameracleaner.model.Folder;
+import com.filutkie.cameracleaner.utils.FileUtils;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class FolderArrayAdapter extends ArrayAdapter<Folder> {
 
 	private Context context;
 
-	public FolderArrayAdapter(Context context, int resource, ArrayList<Folder> objects) {
+	public FolderArrayAdapter(Context context, int resource, List<Folder> objects) {
 		super(context, resource, objects);
 		this.context = context;
 	}
@@ -37,7 +38,7 @@ public class FolderArrayAdapter extends ArrayAdapter<Folder> {
 			TextView sizeTextView = (TextView) view
 					.findViewById(R.id.textview_folder_size);
 			nameTextView.setText(folder.getName());
-			sizeTextView.setText(folder.getSize());
+			sizeTextView.setText(FileUtils.getHumanReadableByteCount(folder.getSize()));
 		}
 
 		return view;
