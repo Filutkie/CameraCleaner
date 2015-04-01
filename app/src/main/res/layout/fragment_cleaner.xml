@@ -1,5 +1,6 @@
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -39,10 +40,10 @@
                 android:id="@+id/textview_size_total"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="size"
+                android:text="Cleaned!"
                 android:layout_gravity="center_horizontal|bottom"
                 android:textColor="@android:color/primary_text_dark"
-                android:textSize="36dp"/>
+                android:textSize="36sp"/>
         </FrameLayout>
 
         <LinearLayout
@@ -100,20 +101,20 @@
 
                 <LinearLayout
                     android:orientation="vertical"
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent"
-                    android:paddingBottom="16dp">
+                    android:paddingBottom="16dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
                     <LinearLayout
                         android:orientation="horizontal"
-                        android:layout_width="fill_parent"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
                         <TextView
                             android:id="@+id/textView"
                             android:layout_width="wrap_content"
                             android:layout_height="48dp"
-                            android:text="Autodelete"
+                            android:text="@string/subheader_autodelete"
                             android:textSize="@dimen/font_size_title"
                             android:gravity="center_vertical"
                             android:paddingStart="16dp"
@@ -160,7 +161,7 @@
                         android:id="@+id/textview_history"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:text="History"
+                        android:text="@string/subheader_history"
                         android:textSize="@dimen/font_size_title"
                         android:gravity="center_vertical"
                         android:paddingStart="16dp"
@@ -186,7 +187,7 @@
                         android:id="@+id/listview_history"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:visibility="gone"/>
+                        tools:visibility="visible"/>
 
                 </LinearLayout>
             </android.support.v7.widget.CardView>

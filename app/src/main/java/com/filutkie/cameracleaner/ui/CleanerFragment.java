@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
@@ -17,25 +16,29 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.filutkie.cameracleaner.CleanerApp;
 import com.filutkie.cameracleaner.R;
 import com.filutkie.cameracleaner.adapter.FolderArrayAdapter;
 import com.filutkie.cameracleaner.model.Folder;
+import com.filutkie.cameracleaner.model.HistoryRecord;
 import com.filutkie.cameracleaner.receiver.CameraReceiver;
 import com.filutkie.cameracleaner.utils.FileUtils;
+import com.filutkie.cameracleaner.utils.HistoryManager;
 import com.filutkie.cameracleaner.utils.Utils;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 
-import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -51,6 +54,7 @@ public class CleanerFragment extends Fragment implements CompoundButton.OnChecke
     private Toolbar toolbar;
     private TextView sizeTextView;
     private ListView foldersListView;
+    private ListView historyListView;
     private Switch autodeleteSwitch;
     private CheckBox notificationCheckBox;
     private CheckBox iconCheckBox;
@@ -71,6 +75,7 @@ public class CleanerFragment extends Fragment implements CompoundButton.OnChecke
         toolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
         sizeTextView = (TextView) rootView.findViewById(R.id.textview_size_total);
         foldersListView = (ListView) rootView.findViewById(R.id.listview_folders_new);
+        historyListView = (ListView) rootView.findViewById(R.id.listview_history);
         autodeleteSwitch = (Switch) rootView.findViewById(R.id.switch_autodelete);
         notificationCheckBox = (CheckBox) rootView.findViewById(R.id.checkbox_notification_show);
         iconCheckBox = (CheckBox) rootView.findViewById(R.id.checkbox_notification_icon);
@@ -104,9 +109,20 @@ public class CleanerFragment extends Fragment implements CompoundButton.OnChecke
         }
         folderList = FileUtils.getFoldersSize();
         fullBytes = FileUtils.getFullSize(folderList);
-        
+        HistoryManager historyManager = new HistoryManager(getActivity());
+        ArrayList<String> stringArrayList = new ArrayList<>();
+        for (HistoryRecord record : historyManager.read()) {
+            long millis = record.getDate();
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, HH:mm");
+            Date resultdate = new Date(millis);
+            stringArrayList.add(sdf.format(resultdate) + ", " +
+                    FileUtils.getHumanReadableByteCount(record.getSize()));
+        }
         foldersListView.setAdapter(new FolderArrayAdapter(getActivity(),
                 R.layout.list_item_folder, folderList));
+        historyListView.setAdapter(new ArrayAdapter<>(getActivity(),
+                android.R.layout.simple_list_item_1, stringArrayList));
+        setListViewHeightBasedOnChildren(historyListView);
         if (fullBytes == 0) {
             sizeTextView.setText(getString(R.string.action_cleaned));
         } else {
@@ -177,6 +193,32 @@ public class CleanerFragment extends Fragment implements CompoundButton.OnChecke
                 sharedPreferences.edit().putBoolean(PREF_KEY_NOTIFICATION_ICON, isChecked).apply();
                 break;
         }
+    }
+
+    /**
+     * Method for Setting the Height of the ListView dynamically.
+     * Hack to fix the issue of not showing all the items of the ListView
+     * when placed inside a ScrollView
+     */
+    public static void setListViewHeightBasedOnChildren(ListView listView) {
+        ListAdapter listAdapter = listView.getAdapter();
+        if (listAdapter == null)
+            return;
+        int desiredWidth = View.MeasureSpec.makeMeasureSpec(listView.getWidth(), View.MeasureSpec.UNSPECIFIED);
+        int totalHeight = 0;
+        View view = null;
+        for (int i = 0; i < listAdapter.getCount(); i++) {
+            view = listAdapter.getView(i, view, listView);
+            if (i == 0)
+                view.setLayoutParams(new ViewGroup.LayoutParams(desiredWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+            view.measure(desiredWidth, View.MeasureSpec.UNSPECIFIED);
+            totalHeight += view.getMeasuredHeight();
+        }
+        ViewGroup.LayoutParams params = listView.getLayoutParams();
+        params.height = totalHeight + (listView.getDividerHeight() * (listAdapter.getCount() - 1));
+        listView.setLayoutParams(params);
+        listView.requestLayout();
     }
 
     private void initAnalytics() {
