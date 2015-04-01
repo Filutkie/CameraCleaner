@@ -16,7 +16,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ListAdapter;
@@ -27,6 +26,7 @@ import android.widget.TextView;
 import com.filutkie.cameracleaner.CleanerApp;
 import com.filutkie.cameracleaner.R;
 import com.filutkie.cameracleaner.adapter.FolderArrayAdapter;
+import com.filutkie.cameracleaner.adapter.HistoryArrayAdapter;
 import com.filutkie.cameracleaner.model.Folder;
 import com.filutkie.cameracleaner.model.HistoryRecord;
 import com.filutkie.cameracleaner.receiver.CameraReceiver;
@@ -120,8 +120,8 @@ public class CleanerFragment extends Fragment implements CompoundButton.OnChecke
         }
         foldersListView.setAdapter(new FolderArrayAdapter(getActivity(),
                 R.layout.list_item_folder, folderList));
-        historyListView.setAdapter(new ArrayAdapter<>(getActivity(),
-                android.R.layout.simple_list_item_1, stringArrayList));
+        historyListView.setAdapter(new HistoryArrayAdapter(getActivity(),
+                R.layout.list_item_history, historyManager.read()));
         setListViewHeightBasedOnChildren(historyListView);
         if (fullBytes == 0) {
             sizeTextView.setText(getString(R.string.action_cleaned));
