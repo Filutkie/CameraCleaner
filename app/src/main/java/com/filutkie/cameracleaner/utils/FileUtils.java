@@ -1,8 +1,5 @@
 package com.filutkie.cameracleaner.utils;
 
-import android.content.Context;
-import android.content.Intent;
-import android.database.Cursor;
 import android.os.Environment;
 
 import com.filutkie.cameracleaner.model.Folder;
@@ -84,9 +81,9 @@ public class FileUtils {
     }
 
     /**
-     * @return ArrayList with folders name and size.
+     * @return List with folders name and size.
      */
-    public static List<Folder> getFoldersSize() {
+    public static List<Folder> getFoldersList() {
         File panoramaSessionsPath = new File(FileUtils.PATH_CAMERA_PANORAMA_FOLDER);
         File tempSessionsPath = new File(FileUtils.PATH_CAMERA_TEMP_FOLDER);
         long panoramaSessionsBytes = FileUtils.getDirSize(panoramaSessionsPath);
@@ -97,19 +94,21 @@ public class FileUtils {
         return folderList;
     }
 
-    public static long getFullSize(List<Folder> folderList) {
+    public static long getListFullSizeInBytes(List<Folder> folderList) {
         long fullBytes = 0;
         for (Folder f : folderList)
             fullBytes += f.getSize();
         return fullBytes;
     }
 
-    public static boolean isPano(Context context, Intent intent) {
-        Cursor cursor = context.getContentResolver().query(intent.getData(), null, null, null, null);
-        cursor.moveToFirst();
-        String title = cursor.getString(cursor.getColumnIndex("TITLE"));
-        cursor.close();
-        return title.startsWith("PANO");
+    public static File getCorrespondingDir(String parentDirPath, String endingDate) {
+        File parentDir = new File(parentDirPath);
+        File found = null;
+        for (File file : parentDir.listFiles()) {
+            if (file.getName().endsWith(endingDate)) {
+                found = new File(file.getPath());
+            }
+        }
+        return found;
     }
-
 }

@@ -76,4 +76,4 @@ proguard/
 # Log Files
 *.log
 
-
+signing.properties

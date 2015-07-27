@@ -1,4 +1,4 @@
-package com.filutkie.cameracleaner.utils;
+package com.filutkie.cameracleaner.io;
 
 
 import android.content.Context;
@@ -10,6 +10,7 @@ import com.filutkie.cameracleaner.model.HistoryRecord;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class HistoryManager {
     private static final String TAG = HistoryManager.class.getSimpleName();
 
     private SharedPreferences sharedPreferences;
-    private String PREF_HISTORY = "history";
+    private String PREF_KEY_HISTORY = "history";
 
     public HistoryManager(Context context) {
         sharedPreferences = context.getSharedPreferences(
@@ -26,8 +27,8 @@ public class HistoryManager {
     }
 
     public List<HistoryRecord> read() {
-        String history = sharedPreferences.getString(PREF_HISTORY, "");
-        if (!history.isEmpty()) {
+        String history = sharedPreferences.getString(PREF_KEY_HISTORY, "");
+        if (history != null && !history.isEmpty()) {
             List<HistoryRecord> historyRecords = new ArrayList<>();
             HistoryRecord historyRecord;
             String[] records = history.split(";");
@@ -36,18 +37,19 @@ public class HistoryManager {
                 historyRecord = new HistoryRecord(Long.parseLong(items[0]), Long.parseLong(items[1]));
                 historyRecords.add(historyRecord);
             }
-
-            return historyRecords;
+            Collections.reverse(historyRecords);
+            return historyRecords.size() > 5 ? historyRecords.subList(0, 5) : historyRecords;
         }
-        return null;
+        return new ArrayList<>();
     }
 
     public void add(long size) {
-        String history = sharedPreferences.getString(PREF_HISTORY, "");
+        String history = sharedPreferences.getString(PREF_KEY_HISTORY, "");
         Calendar calendar = GregorianCalendar.getInstance();
         String record = size + "," + calendar.getTimeInMillis() + ";";
-        sharedPreferences.edit().putString(PREF_HISTORY, history.concat(record)).apply();
-
+        if (history != null) {
+            sharedPreferences.edit().putString(PREF_KEY_HISTORY, history.concat(record)).apply();
+        }
         Log.d(TAG, "History: " + history);
     }
 
